@@ -5,5 +5,4 @@ RUN docker-php-ext-install mysqli
 WORKDIR /app
 COPY . .
 
-RUN chmod +x start.sh
-CMD ["./start.sh"]
+CMD ["/bin/sh", "-c", "php -S 0.0.0.0:${PORT:-8080}"]
