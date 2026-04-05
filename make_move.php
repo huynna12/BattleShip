@@ -36,8 +36,9 @@ $col = strtoupper($col);
    Determine HIT or MISS
    A hit means: opponent has a ship at (row, col)
    ---------------------------------------------------- */
-$sql = "SELECT 1 FROM SHIP_CELLS
-        WHERE game_id = ? AND player_id <> ? AND row_num = ? AND col_char = ?";
+$sql = "SELECT 1 FROM SHIP_CELLS sc
+        JOIN SHIPS s ON sc.ship_id = s.ship_id
+        WHERE s.game_id = ? AND s.player_id <> ? AND sc.row_num = ? AND sc.col_char = ?";
 
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("iiis", $game_id, $user_id, $row, $col);
