@@ -21,6 +21,8 @@ if ($conn->connect_error) {
 }
 
 // Auto-create tables if they don't exist yet
+mysqli_report(MYSQLI_REPORT_OFF);
+
 $conn->query("CREATE TABLE IF NOT EXISTS USERS (
     user_id   INT AUTO_INCREMENT PRIMARY KEY,
     username  CHAR(25) NOT NULL UNIQUE,
@@ -71,3 +73,5 @@ $conn->query("CREATE TABLE IF NOT EXISTS SHIP_CELLS (
     PRIMARY KEY (ship_id, row_num, col_char),
     FOREIGN KEY (ship_id) REFERENCES SHIPS(ship_id) ON DELETE CASCADE
 )");
+
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
