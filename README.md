@@ -1,107 +1,86 @@
-# Overview of the game
-Battleship is a two-player turn-based game played on a 10x10 grid. Each player has five ships of different lengths and tries to sink the opponent’s ships by guessing their locations. Players take turns choosing grid coordinates to fire at, and each shot is recorded as either a hit or a miss. The game ends when one player’s entire fleet is sunk.
+# Battleship
 
-In this web application, users can register, log in, challenge other users, accept challenges, and view current or completed games. The game is not real-time; each player can log in and take their turn whenever they want. For Homework 2, the application includes a draft Battleship board where players can click a cell to make a move, and hits and misses are stored in the database. Full ship placement and winner detection will be added in the next assignment.
-# Overview of the files
-- connect_db.php
-- login.php
-- register.php
-- logout.php
+A two-player turn-based Battleship game built with PHP and MySQL. Players register, log in, challenge each other, place ships, and take turns firing at the opponent's grid. The game is asynchronous — each player can log in and take their turn whenever they want.
 
-- home.php
-    Main menu after logging in.
-    Contains four sections:
-    Invite Sent – shows users you challenged and pending invites.
-    Invite Received – shows challenges from other users.
-    Current Games – shows active or placing games.
-    History Games – shows completed games and winners.
-    This file uses ?view=sent, ?view=received, etc., to switch between sections.
+## Features
 
-- send_invite.php
-    Inserts a new row into the GAMES table when you challenge another user.
-    Sets game status to 0 (pending).
+- User registration and login
+- Challenge other registered users
+- Accept or ignore incoming invites
+- 10x10 interactive game board (A–J, 1–10)
+- Hits and misses persisted in the database
+- Game history with winner tracking
 
-- accept_invite.php
-    Allows the second player to accept a challenge.
-    Updates GAMES.status to 1 (placing ships).
+## Tech Stack
 
-- game.php
-    Displays a 60x60 Battleship grid (A–J and 1–10).
-    Shows X for a miss and O for a hit.
-    Each empty cell is a clickable button that submits a move.
-    This is the required “draft game board” for Homework 2.
+- **Backend:** PHP
+- **Database:** MySQL
+- **Frontend:** HTML/CSS (plain, no framework)
 
-- make_move.php
-    Accepts a move from game.php and inserts a row into MOVES.
-    Redirects back to the game board so the new X/O appears.
+## Setup
 
-# SQL statements needed for setting up 
-## Create tables 
--- USERS TABLE
-CREATE TABLE USERS (
-    user_id   INT AUTO_INCREMENT PRIMARY KEY,
-    username  CHAR(25) NOT NULL UNIQUE,
-    password  CHAR(64) NOT NULL
-);
+### 1. Configure the database
 
--- GAMES TABLE
-CREATE TABLE GAMES (
-    game_id     INT AUTO_INCREMENT PRIMARY KEY,
-    player1_id  INT NOT NULL,
-    player2_id  INT NOT NULL,
-    -- 0 = pending, 1 = placing, 2 = active, 3 = finish
-    status      TINYINT NOT NULL,
-    cur_turn    INT NULL,
-    winner_id   INT NULL,
-    CHECK (status IN (0,1,2,3))
-);
+Copy `.env.example` to `.env` and fill in your MySQL credentials:
 
--- SHIP_CELLS TABLE
-CREATE TABLE SHIP_CELLS (
-    game_id   INT,
-    player_id INT,
-    row_num   TINYINT,
-    col_char  CHAR(1),
-    PRIMARY KEY (game_id, player_id, row_num, col_char)
-);
+```
+DB_HOST=localhost
+DB_USERNAME=root
+DB_PASSWORD=
+DB_NAME=battleship
+```
 
--- MOVES TABLE
-CREATE TABLE MOVES (
-    move_id   INT AUTO_INCREMENT PRIMARY KEY,
-    game_id   INT NOT NULL,
-    player_id INT NOT NULL,
-    row_num   TINYINT NOT NULL,
-    col_char  CHAR(1) NOT NULL,
-    result    TINYINT CHECK (result IN (0,1)),
-    UNIQUE (game_id, player_id, row_num, col_char)
-);
+### 2. Initialize the database
 
-## Add some data 
--- Create users for testing
-INSERT INTO USERS (username, password) VALUES
-  ('alice', SHA2('alicepass', 256)),
-  ('bob',   SHA2('bobpass',   256)),
-  ('carol', SHA2('carolpass', 256)),
-  ('dave',  SHA2('davepass', 256));
+Run `battle_ship.sql` in your MySQL client to create the tables and load test data:
 
--- Expected user_ids:
--- alice -> 1
--- bob   -> 2
--- carol -> 3
--- dave  -> 4
+```bash
+mysql -u root -p battleship < battle_ship.sql
+```
 
-INSERT INTO GAMES (player1_id, player2_id, status, cur_turn, winner_id) VALUES
-  (1, 2, 0, NULL, NULL),  -- Game 1: alice -> bob (pending)
-  (2, 1, 0, NULL, NULL),  -- Game 2: bob -> alice (pending)
-  (1, 3, 1,    1, NULL),  -- Game 3: alice vs carol (placing)
-  (2, 3, 2,    2, NULL),  -- Game 4: bob vs carol (active)
-  (1, 2, 3, NULL,    1),  -- Game 5: finished, alice won
-  (3, 4, 3, NULL,    4);  -- Game 6: finished, dave won
+### 3. Serve the app
 
-## Grant access (optional, for a dedicated web user)
--- GRANT SELECT, INSERT, UPDATE, DELETE ON battleship.* TO 'your_web_user'@'%';
+Use a local PHP server or any PHP host (e.g. Railway, InfinityFree):
 
-# Notes: 
-- I do not have the place ships part yet. 
-- Most of the links on the page are functional, you may check them. 
-- 
+```bash
+php -S localhost:8000
+```
+
+Then open `http://localhost:8000/login.php`.
+
+## Test Accounts
+
+| Username | Password    |
+|----------|-------------|
+| alice    | alicepass   |
+| bob      | bobpass     |
+| carol    | carolpass   |
+| dave     | davepass    |
+
+## File Overview
+
+| File | Purpose |
+|------|---------|
+| `connect_db.php` | Database connection, reads from `.env` |
+| `login.php` | Login form and authentication |
+| `register.php` | New user registration |
+| `logout.php` | Ends the session |
+| `home.php` | Dashboard — invites sent/received, current games, history |
+| `send_invite.php` | Challenge another user (creates a pending game) |
+| `accept_invite.php` | Accept a challenge (moves game to placing status) |
+| `place_ships.php` | Ship placement phase |
+| `game.php` | Interactive game board — click a cell to fire |
+| `make_move.php` | Records a move and redirects back to the board |
+| `views/sent.php` | Partial: invites you sent |
+| `views/received.php` | Partial: invites you received |
+| `views/current.php` | Partial: active games |
+| `views/history.php` | Partial: completed games |
+
+## Game Status Codes
+
+| Status | Meaning |
+|--------|---------|
+| 0 | Pending (invite not yet accepted) |
+| 1 | Placing ships |
+| 2 | Active (players taking turns) |
+| 3 | Finished |
