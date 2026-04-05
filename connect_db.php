@@ -23,11 +23,12 @@ if ($conn->connect_error) {
 // Auto-create tables if they don't exist yet
 mysqli_report(MYSQLI_REPORT_OFF);
 
-$conn->query("CREATE TABLE IF NOT EXISTS USERS (
+$result = $conn->query("CREATE TABLE IF NOT EXISTS USERS (
     user_id   INT AUTO_INCREMENT PRIMARY KEY,
     username  CHAR(25) NOT NULL UNIQUE,
     password  CHAR(64) NOT NULL
 )");
+if (!$result) { die("Failed to create USERS table: " . $conn->error); }
 
 $conn->query("CREATE TABLE IF NOT EXISTS GAMES (
     game_id     INT AUTO_INCREMENT PRIMARY KEY,
