@@ -9,10 +9,10 @@ if (file_exists(__DIR__ . '/.env')) {
     }
 }
  
-$server   = $_ENV['DB_HOST']     ?? 'localhost';
-$username = $_ENV['DB_USERNAME'] ?? 'root';
-$password = $_ENV['DB_PASSWORD'] ?? '';
-$dbname   = $_ENV['DB_NAME']     ?? 'battleship';
+$server   = $_ENV['DB_HOST']     ?? getenv('DB_HOST')     ?: 'localhost';
+$username = $_ENV['DB_USERNAME'] ?? getenv('DB_USERNAME') ?: 'root';
+$password = $_ENV['DB_PASSWORD'] ?? getenv('DB_PASSWORD') ?: '';
+$dbname   = $_ENV['DB_NAME']     ?? getenv('DB_NAME')     ?: 'battleship';
  
 $conn = new mysqli($server, $username, $password, $dbname);
  
