@@ -55,19 +55,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         exit;
     }
 
-    // Accept the invite:
-    //  - set status = 2 (active)
-    //  - set cur_turn = player1_id (player1 starts)
-    $sql = "UPDATE GAMES
-            SET status = 2, cur_turn = ?
-            WHERE game_id = ?";
+    // Accept the invite: move to placing ships (status = 1)
+    $sql = "UPDATE GAMES SET status = 1 WHERE game_id = ?";
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("ii", $p1_id, $game_id);
+    $stmt->bind_param("i", $game_id);
 
     if ($stmt->execute()) {
         $stmt->close();
         // Later you can redirect to place ships or directly to game.php
-        header("Location: home.php?view=current");
+        header("Location: place_ships.php?game_id=$game_id");
         exit;
     } else {
         $error = $stmt->error;
@@ -81,4 +77,3 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     echo "<p>Invalid request method.</p>";
     echo "<p><a href='home.php?view=received'>Back</a></p>";
 }
-?>
