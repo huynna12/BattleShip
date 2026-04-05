@@ -1,71 +1,72 @@
 <?php
 require_once "connect_db.php";
 ?>
- 
 <!DOCTYPE html>
-<html lang="en" xml:lang="en">
+<html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>User Registration</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register – Battleship</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<h2>Create an Account</h2>
+<header class="site-header">
+    <a href="index.php" class="logo">⚓ Battleship</a>
+</header>
 
-<form action="register.php" method="post" autocomplete="off">
-    <label for="username">Username:</label>
-    <input type="text" id="username" name="username" required>
-    <br><br>
+<div class="card">
+    <h2>Create Account</h2>
 
-    <label for="password">Password:</label>
-    <input type="password" id="password" name="password" required>
-    <br><br>
+    <form action="register.php" method="post" autocomplete="off">
+        <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" required>
+        </div>
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full">Sign Up</button>
+    </form>
 
-    <input type="submit" value="Register">
-</form>
+    <?php
+    if ($_SERVER["REQUEST_METHOD"] === "POST") {
+        $username = trim($_POST["username"] ?? "");
+        $password = $_POST["password"] ?? "";
 
-<p>Already have an account? <a href="login.php">Login</a></p>
-
-<?php
-if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    $username = trim($_POST["username"] ?? "");
-    $password = $_POST["password"] ?? "";
-
-    if ($username === "" || $password === "") {
-        echo "<p style='color:red;'>Please provide both a username and password.</p>";
-    } else {
-        // check if username already exists 
-        $check = $conn->prepare("SELECT * FROM USERS WHERE username = ?");
-        $check->bind_param("s", $username);
-        $check->execute();
-        $check->store_result();
-
-        if ($check->num_rows > 0) {
-            echo "<p style='color:red;'>Username already exists — please choose another.</p>";
-            $check->close();
+        if ($username === "" || $password === "") {
+            echo "<div class='alert alert-error'>Please provide both a username and password.</div>";
         } else {
-            $check->close();
+            $check = $conn->prepare("SELECT * FROM USERS WHERE username = ?");
+            $check->bind_param("s", $username);
+            $check->execute();
+            $check->store_result();
 
-            // insert the user
-            $sql = "INSERT INTO USERS (username, password) VALUES (?, SHA2(?, 256))";
-            $stmt = $conn->prepare($sql);
-            $stmt->bind_param("ss", $username, $password);
-
-            $stmt->execute();
-            
-            // check result without executing again
-            if ($stmt->affected_rows === 1) {
-                echo "<p style='color:green;'>Registration successful. <a href='login.php'>Login here</a></p>";
+            if ($check->num_rows > 0) {
+                echo "<div class='alert alert-error'>Username already exists — please choose another.</div>";
+                $check->close();
             } else {
-                echo "<p style='color:red;'>Registration failed. Please try again.</p>";
-            }
-            $stmt->close();
-        }
-    }
+                $check->close();
+                $sql  = "INSERT INTO USERS (username, password) VALUES (?, SHA2(?, 256))";
+                $stmt = $conn->prepare($sql);
+                $stmt->bind_param("ss", $username, $password);
+                $stmt->execute();
 
-    $conn->close();
-}
-?>
+                if ($stmt->affected_rows === 1) {
+                    echo "<div class='alert alert-success'>Account created! <a href='login.php'>Login here</a></div>";
+                } else {
+                    echo "<div class='alert alert-error'>Registration failed. Please try again.</div>";
+                }
+                $stmt->close();
+            }
+        }
+        $conn->close();
+    }
+    ?>
+
+    <p class="form-footer" style="margin-top:20px;">Already have an account? <a href="login.php">Login</a></p>
+</div>
 
 </body>
 </html>

@@ -1,10 +1,7 @@
 <?php
-// Finished (History) Games view
+// History view
 
-echo "<h2>Finished Games</h2>";
-
-$sql = "SELECT g.game_id,
-               g.winner_id,
+$sql = "SELECT g.game_id, g.winner_id,
                u1.username AS p1_name,
                u2.username AS p2_name
         FROM GAMES g
@@ -16,34 +13,36 @@ $sql = "SELECT g.game_id,
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("ii", $user_id, $user_id);
 $stmt->execute();
-$stmt->bind_result($game_id, $winner_id, $p1_name, $p2_name);
+$stmt->bind_result($gid, $winner_id, $p1_name, $p2_name);
 
-echo "<table border='1'>";
-echo "<tr><th>Game</th><th>Player 1</th><th>Player 2</th><th>Result</th></tr>";
-
-$empty = true;
+$games = [];
 while ($stmt->fetch()) {
-    $empty = false;
-
-    if ($winner_id === null) {
-        $result = "Finished (no winner)";
-    } elseif ($winner_id == $user_id) {
-        $result = "You won";
-    } else {
-        $result = "You lost";
-    }
-
-    echo "<tr>";
-    echo "<td>$game_id</td>";
-    echo "<td>$p1_name</td>";
-    echo "<td>$p2_name</td>";
-    echo "<td>$result</td>";
-    echo "</tr>";
+    $games[] = ["id" => $gid, "winner_id" => $winner_id, "p1" => $p1_name, "p2" => $p2_name];
 }
-
-if ($empty) {
-    echo "<tr><td colspan='4'>No finished games.</td></tr>";
-}
-echo "</table>";
-
 $stmt->close();
+?>
+
+<h3 class="section-title">Game History</h3>
+<table class="data-table">
+    <tr><th>Game</th><th>Player 1</th><th>Player 2</th><th>Result</th></tr>
+    <?php if (empty($games)): ?>
+        <tr class="empty-row"><td colspan="4">No finished games.</td></tr>
+    <?php else: ?>
+        <?php foreach ($games as $g):
+            if ($g['winner_id'] === null) {
+                $result = "<span class='badge'>No winner</span>";
+            } elseif ($g['winner_id'] == $user_id) {
+                $result = "<span class='badge badge-won'>You won</span>";
+            } else {
+                $result = "<span class='badge badge-lost'>You lost</span>";
+            }
+        ?>
+        <tr>
+            <td>#<?php echo $g['id']; ?></td>
+            <td><?php echo htmlspecialchars($g['p1']); ?></td>
+            <td><?php echo htmlspecialchars($g['p2']); ?></td>
+            <td><?php echo $result; ?></td>
+        </tr>
+        <?php endforeach; ?>
+    <?php endif; ?>
+</table>

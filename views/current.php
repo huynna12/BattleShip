@@ -1,15 +1,8 @@
 <?php
-// views/current.php
-// Shows all games for the logged-in user that are in "placing" or "active" status.
+// Current Games view
 
-// Assumes $conn (mysqli) and $user_id are already defined.
-
-echo "<h2>Current Games</h2>";
-
-// Fetch current games (status 1 = placing, 2 = active)
 $sql = "
-    SELECT g.game_id,
-           g.status,
+    SELECT g.game_id, g.status,
            u1.username AS p1_name,
            u2.username AS p2_name
     FROM GAMES g
@@ -19,58 +12,40 @@ $sql = "
       AND g.status IN (1, 2)
     ORDER BY g.game_id DESC
 ";
-
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("ii", $user_id, $user_id);
 $stmt->execute();
-$stmt->bind_result($game_id, $status, $p1_name, $p2_name);
+$stmt->bind_result($gid, $status, $p1_name, $p2_name);
 
-echo "<table border='1'>";
-echo "<tr>
-        <th>Game</th>
-        <th>Player 1</th>
-        <th>Player 2</th>
-        <th>Status</th>
-        <th>Open</th>
-      </tr>";
-
-$empty = true;
-
+$games = [];
 while ($stmt->fetch()) {
-    $empty = false;
-
-    // Decide label + target page based on status
-    switch ($status) {
-        case 1: // placing ships
-            $status_text = "Placing Ships";
-            $open_href   = "place_ships.php?game_id={$game_id}";
-            break;
-
-        case 2: // active
-            $status_text = "Active";
-            $open_href   = "game.php?game_id={$game_id}";
-            break;
-
-        default:
-            // Should not happen because of the WHERE clause
-            $status_text = "Unknown";
-            $open_href   = "#";
-            break;
-    }
-
-    echo "<tr>";
-    echo "<td>{$game_id}</td>";
-    echo "<td>{$p1_name}</td>";
-    echo "<td>{$p2_name}</td>";
-    echo "<td>{$status_text}</td>";
-    echo "<td><a href='{$open_href}'>Open</a></td>";
-    echo "</tr>";
+    $games[] = ["id" => $gid, "status" => $status, "p1" => $p1_name, "p2" => $p2_name];
 }
-
-if ($empty) {
-    echo "<tr><td colspan='5'>No current games.</td></tr>";
-}
-
-echo "</table>";
-
 $stmt->close();
+?>
+
+<h3 class="section-title">Current Games</h3>
+<table class="data-table">
+    <tr><th>Game</th><th>Player 1</th><th>Player 2</th><th>Status</th><th></th></tr>
+    <?php if (empty($games)): ?>
+        <tr class="empty-row"><td colspan="5">No current games.</td></tr>
+    <?php else: ?>
+        <?php foreach ($games as $g):
+            if ($g['status'] === 1) {
+                $badge = "<span class='badge badge-placing'>Placing Ships</span>";
+                $href  = "place_ships.php?game_id={$g['id']}";
+            } else {
+                $badge = "<span class='badge badge-active'>Active</span>";
+                $href  = "game.php?game_id={$g['id']}";
+            }
+        ?>
+        <tr>
+            <td>#<?php echo $g['id']; ?></td>
+            <td><?php echo htmlspecialchars($g['p1']); ?></td>
+            <td><?php echo htmlspecialchars($g['p2']); ?></td>
+            <td><?php echo $badge; ?></td>
+            <td><a href="<?php echo $href; ?>" class="btn btn-secondary btn-sm">Open</a></td>
+        </tr>
+        <?php endforeach; ?>
+    <?php endif; ?>
+</table>

@@ -18,7 +18,7 @@ CREATE TABLE USERS (
 -- GAMES TABLE
 -- 0 = pending, 1 = placing, 2 = active, 3 = finished
 ------------------------------------------------------------
-CREATE TABLE GAMES (
+CREATE TABLE GAMES (n
     game_id     INT AUTO_INCREMENT PRIMARY KEY,
     player1_id  INT NOT NULL,
     player2_id  INT NOT NULL,
