@@ -1,7 +1,9 @@
-FROM php:8.2-apache
+FROM php:8.2-cli
 
-RUN a2dismod mpm_event && a2enmod mpm_prefork && docker-php-ext-install mysqli
+RUN docker-php-ext-install mysqli
 
-COPY . /var/www/html/
+WORKDIR /app
+COPY . .
 
-RUN chown -R www-data:www-data /var/www/html
+RUN chmod +x start.sh
+CMD ["./start.sh"]
